@@ -2,68 +2,153 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import os
 
-# 📦 Model loading helpers
+# ========================
+# CONFIGURATION
+# ========================
+
+DATASETS = {
+    "Page 1: diabetes.csv": {
+        "csv_path": "diabetes.csv",
+        "target_col": "Outcome",
+        "model_dir": "models1/",
+        "model_files": {
+            "Random Forest": "Random_Forest_after_clonal_selection.joblib",
+            "Decision Tree": "Decision_Tree_after_clonal_selection.joblib",
+            "SVM": "SVM_after_clonal_selection.joblib",
+            "XGBoost": "XGBoost_after_clonal_selection.joblib",
+            "MLP (Neural Network)": "MLP_Neural_Network_after_clonal_selection.joblib",
+            "Logistic Regression": "Logistic_Regression_after_clonal_selection.joblib",
+        },
+        "categorical_map": None,  # all features are numeric
+        "note": "Ce formulaire vous permet de saisir les paramètres médicaux d’un patient pour prédire le risque de diabète (dataset original Pima).",
+    },
+    "Page 2: diabetes1.csv": {
+        "csv_path": "diabetes1.csv",
+        "target_col": "Outcome",
+        "model_dir": "models2/",
+        "model_files": {
+            "Random Forest": "random_forest_clonal_selection_model.pkl",
+            "Decision Tree": "decision_tree_clonal_selection_model.pkl",
+            "SVM": "svm_clonal_selection_model.pkl",
+            "XGBoost": "xgboost_clonal_selection_model.pkl",
+            "MLP (Neural Network)": "mlp_neural_network_clonal_selection_model.pkl",
+            "Logistic Regression": "logistic_regression_clonal_selection_model.pkl",
+        },
+        "categorical_map": None,  # all features are numeric
+        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes1.csv).",
+    },
+    "Page 3: diabetes2.csv": {
+        "csv_path": "diabetes2.csv",
+        "target_col": "class",
+        "model_dir": "models3/",
+        "model_files": {
+            "Random Forest": "Random_Forest_after_selection.pkl",
+            "Decision Tree": "Decision_Tree_after_selection.pkl",
+            "SVM": "SVM_after_selection.pkl",
+            "XGBoost": "XGBoost_after_selection.pkl",
+            "MLP (Neural Network)": "MLP_Neural_Network_after_selection.pkl",
+            "Logistic Regression": "Logistic_Regression_after_selection.pkl",
+        },
+        "categorical_map": {
+            "Gender": ["Female", "Male"],
+            "Polyuria": ["No", "Yes"],
+            "Polydipsia": ["No", "Yes"],
+            "sudden weight loss": ["No", "Yes"],
+            "weakness": ["No", "Yes"],
+            "Polyphagia": ["No", "Yes"],
+            "Genital thrush": ["No", "Yes"],
+            "visual blurring": ["No", "Yes"],
+            "Itching": ["No", "Yes"],
+            "Irritability": ["No", "Yes"],
+            "delayed healing": ["No", "Yes"],
+            "partial paresis": ["No", "Yes"],
+            "muscle stiffness": ["No", "Yes"],
+            "Alopecia": ["No", "Yes"],
+            "Obesity": ["No", "Yes"],
+        },
+        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes2.csv, features catégorielles incluses).",
+    }
+}
+
+# ========================
+# UTILS
+# ========================
+
 @st.cache_resource
 def load_model(model_path):
     return joblib.load(model_path)
 
-def get_model_list():
-    # Add or remove models here as needed
-    models = {
-        "Random Forest": "Random_Forest_after_clonal_selection.joblib",
-        "Decision Tree": "Decision_Tree_after_clonal_selection.joblib",
-        "SVM": "SVM_after_clonal_selection.joblib",
-        "XGBoost": "XGBoost_after_clonal_selection.joblib",
-        "MLP (Neural Network)": "MLP_Neural_Network_after_clonal_selection.joblib",
-        "Logistic Regression": "Logistic_Regression_after_clonal_selection.joblib"
-    }
-    return models
-
-# 📁 Paths (adjust if running outside Google Colab)
-MODEL_DIR = "models1/"
-CSV_PATH = "diabetes.csv"
-
-# 📌 Load data to get feature names
 @st.cache_data
-def load_csv():
-    df = pd.read_csv(CSV_PATH)
-    X = df.drop(columns=["Outcome"])
-    return X
+def load_csv(csv_path):
+    return pd.read_csv(csv_path)
 
-X = load_csv()
-features = list(X.columns)
+def show_numeric_input(df, feature):
+    min_value = float(df[feature].min())
+    max_value = float(df[feature].max())
+    mean_value = float(df[feature].mean())
+    return st.number_input(
+        f"{feature}", min_value=min_value, max_value=max_value, value=mean_value
+    )
 
-st.title("🔬 Diabetes Prediction App")
+# ========================
+# STREAMLIT APP WITH MULTIPAGE
+# ========================
 
-st.write("Ce formulaire vous permet de saisir les paramètres médicaux d’un patient pour prédire le risque de diabète à l’aide de modèles de machine learning.")
+st.set_page_config(page_title="🩺 Application de Prédiction du Diabète", layout="wide")
 
-# 🚦 Model selection
-model_files = get_model_list()
+# Use Streamlit's built-in multipage with sidebar radio
+page = st.sidebar.radio(
+    "Navigation",
+    list(DATASETS.keys()),
+    format_func=lambda x: x.replace("Page ", "")
+)
+
+config = DATASETS[page]
+st.title(page)
+st.info(config["note"])
+
+df = load_csv(config["csv_path"])
+features = [col for col in df.columns if col != config["target_col"]]
+categorical_map = config["categorical_map"]
+
+# Model selection
+model_files = config["model_files"]
 model_name = st.selectbox("Choisissez le modèle de classification", list(model_files.keys()))
-model_path = MODEL_DIR + model_files[model_name]
+model_path = os.path.join(config["model_dir"], model_files[model_name])
 
-# 🚀 Load selected model
 try:
     model = load_model(model_path)
 except Exception as e:
     st.error(f"Erreur lors du chargement du modèle : {e}")
     st.stop()
 
-# 🚧 User input
 st.header("Entrez les valeurs pour chaque caractéristique")
+
 user_input = {}
 for feature in features:
-    min_value = float(X[feature].min())
-    max_value = float(X[feature].max())
-    mean_value = float(X[feature].mean())
-    user_input[feature] = st.number_input(
-        f"{feature}", min_value=min_value, max_value=max_value, value=mean_value
-    )
+    if categorical_map and feature in categorical_map:
+        options = categorical_map[feature]
+        selection = st.selectbox(f"{feature}", options, key=feature)
+        encoded = options.index(selection)
+        user_input[feature] = encoded
+    elif page == "Page 3: diabetes2.csv" and feature == "Age":
+        # Age was standardized during training for diabetes2.csv, so standardize here
+        original_age_min = int(df["Age"].min())
+        original_age_max = int(df["Age"].max())
+        user_val = st.number_input(
+            f"{feature} (original scale)",
+            min_value=original_age_min, max_value=original_age_max,
+            value=int(df["Age"].mean()),
+            key=feature
+        )
+        user_input[feature] = (user_val - df["Age"].mean()) / df["Age"].std()
+    else:
+        user_input[feature] = show_numeric_input(df, feature)
 
 input_df = pd.DataFrame([user_input])
 
-# 🔮 Predict
 if st.button("Prédire le diabète"):
     with st.spinner("Prédiction en cours..."):
         try:
@@ -79,4 +164,4 @@ if st.button("Prédire le diabète"):
             st.stop()
 
 st.markdown("---")
-st.caption("👩‍⚕️ Cette application utilise des modèles entraînés après sélection de caractéristiques clonales. Veuillez consulter un professionnel de santé pour toute décision médicale.")
+st.caption("👩‍⚕️ Cette application utilise des modèles entraînés avec sélection de caractéristiques. Veuillez consulter un professionnel de santé pour toute décision médicale.")

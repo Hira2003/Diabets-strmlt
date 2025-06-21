@@ -21,8 +21,8 @@ def get_model_list():
     return models
 
 # 📁 Paths (adjust if running outside Google Colab)
-MODEL_DIR = "/content/drive/MyDrive/correction/"
-CSV_PATH = "/content/drive/MyDrive/correction/diabetes.csv"
+MODEL_DIR = "models1/"
+CSV_PATH = "diabetes.csv"
 
 # 📌 Load data to get feature names
 @st.cache_data

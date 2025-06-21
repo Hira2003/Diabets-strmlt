@@ -84,12 +84,14 @@ def load_model(model_path):
 def load_csv(csv_path):
     return pd.read_csv(csv_path)
 
-def show_numeric_input(df, feature):
+def show_numeric_input(df, feature, value=None):
     min_value = float(df[feature].min())
     max_value = float(df[feature].max())
     mean_value = float(df[feature].mean())
+    if value is None:
+        value = mean_value
     return st.number_input(
-        f"{feature}", min_value=min_value, max_value=max_value, value=mean_value
+        f"{feature}", min_value=min_value, max_value=max_value, value=float(value)
     )
 
 # ========================
@@ -121,25 +123,52 @@ except Exception as e:
 
 st.header("Entrez les valeurs pour chaque caractéristique")
 
+# --- Importer un exemple du dataset ---
+example_idx = None
+example_button = st.button("Importer un exemple du dataset")
+
+if example_button:
+    # Choisir une ligne au hasard (hors target)
+    example_idx = np.random.choice(df.index)
+    st.success(f"Exemple importé : ligne {example_idx+1} du dataset")
+    example_row = df.iloc[example_idx]
+else:
+    example_row = None
+
 user_input = {}
 for feature in features:
     if categorical_map and feature in categorical_map:
         options = categorical_map[feature]
-        selection = st.selectbox(f"{feature}", options, key=feature)
+        if example_row is not None:
+            # On suppose que la colonne est déjà encodée sous forme d'int (0 ou 1)
+            val = int(example_row[feature])
+            selection = options[val] if val < len(options) else options[0]
+        else:
+            selection = options[0]
+        selection = st.selectbox(f"{feature}", options, key=feature, index=options.index(selection))
         encoded = options.index(selection)
         user_input[feature] = encoded
     elif page_choice == "Diabetes2 (Custom2)" and feature == "Age":
         original_age_min = int(df["Age"].min())
         original_age_max = int(df["Age"].max())
+        if example_row is not None:
+            user_val = int(example_row["Age"])
+        else:
+            user_val = int(df["Age"].mean())
         user_val = st.number_input(
             f"{feature} (original scale)",
             min_value=original_age_min, max_value=original_age_max,
-            value=int(df["Age"].mean()),
+            value=user_val,
             key=feature
         )
+        # Normaliser comme dans le script d'origine
         user_input[feature] = (user_val - df["Age"].mean()) / df["Age"].std()
     else:
-        user_input[feature] = show_numeric_input(df, feature)
+        if example_row is not None:
+            value = example_row[feature]
+        else:
+            value = None
+        user_input[feature] = show_numeric_input(df, feature, value=value)
 
 input_df = pd.DataFrame([user_input])
 

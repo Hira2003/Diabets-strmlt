@@ -5,11 +5,11 @@ import joblib
 import os
 
 # ========================
-# CONFIGURATION
+# PAGE CONFIGURATION
 # ========================
 
-DATASETS = {
-    "Page 1: diabetes.csv": {
+PAGES = {
+    "Diabetes (Pima)": {
         "csv_path": "diabetes.csv",
         "target_col": "Outcome",
         "model_dir": "models1/",
@@ -19,12 +19,12 @@ DATASETS = {
             "SVM": "SVM_after_clonal_selection.joblib",
             "XGBoost": "XGBoost_after_clonal_selection.joblib",
             "MLP (Neural Network)": "MLP_Neural_Network_after_clonal_selection.joblib",
-            "Logistic Regression": "Logistic_Regression_after_clonal_selection.joblib",
+            "Logistic Regression": "Logistic_Regression_after_clonal_selection.joblib"
         },
-        "categorical_map": None,  # all features are numeric
-        "note": "Ce formulaire vous permet de saisir les paramètres médicaux d’un patient pour prédire le risque de diabète (dataset original Pima).",
+        "categorical_map": None,
+        "note": "Ce formulaire vous permet de saisir les paramètres médicaux d’un patient pour prédire le risque de diabète - Dataset Pima."
     },
-    "Page 2: diabetes1.csv": {
+    "Diabetes1 (Custom1)": {
         "csv_path": "diabetes1.csv",
         "target_col": "Outcome",
         "model_dir": "models2/",
@@ -34,12 +34,12 @@ DATASETS = {
             "SVM": "svm_clonal_selection_model.pkl",
             "XGBoost": "xgboost_clonal_selection_model.pkl",
             "MLP (Neural Network)": "mlp_neural_network_clonal_selection_model.pkl",
-            "Logistic Regression": "logistic_regression_clonal_selection_model.pkl",
+            "Logistic Regression": "logistic_regression_clonal_selection_model.pkl"
         },
-        "categorical_map": None,  # all features are numeric
-        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes1.csv).",
+        "categorical_map": None,
+        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes1.csv)."
     },
-    "Page 3: diabetes2.csv": {
+    "Diabetes2 (Custom2)": {
         "csv_path": "diabetes2.csv",
         "target_col": "class",
         "model_dir": "models3/",
@@ -49,7 +49,7 @@ DATASETS = {
             "SVM": "SVM_after_selection.pkl",
             "XGBoost": "XGBoost_after_selection.pkl",
             "MLP (Neural Network)": "MLP_Neural_Network_after_selection.pkl",
-            "Logistic Regression": "Logistic_Regression_after_selection.pkl",
+            "Logistic Regression": "Logistic_Regression_after_selection.pkl"
         },
         "categorical_map": {
             "Gender": ["Female", "Male"],
@@ -66,9 +66,9 @@ DATASETS = {
             "partial paresis": ["No", "Yes"],
             "muscle stiffness": ["No", "Yes"],
             "Alopecia": ["No", "Yes"],
-            "Obesity": ["No", "Yes"],
+            "Obesity": ["No", "Yes"]
         },
-        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes2.csv, features catégorielles incluses).",
+        "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes2.csv, features catégorielles incluses)."
     }
 }
 
@@ -93,20 +93,15 @@ def show_numeric_input(df, feature):
     )
 
 # ========================
-# STREAMLIT APP WITH MULTIPAGE
+# STREAMLIT APP
 # ========================
 
-st.set_page_config(page_title="🩺 Application de Prédiction du Diabète", layout="wide")
+st.set_page_config(page_title="🩺 Prédiction du Diabète", layout="wide")
+st.sidebar.title("Navigation")
+page_choice = st.sidebar.radio("Choisissez la page :", list(PAGES.keys()))
 
-# Use Streamlit's built-in multipage with sidebar radio
-page = st.sidebar.radio(
-    "Navigation",
-    list(DATASETS.keys()),
-    format_func=lambda x: x.replace("Page ", "")
-)
-
-config = DATASETS[page]
-st.title(page)
+config = PAGES[page_choice]
+st.title(page_choice)
 st.info(config["note"])
 
 df = load_csv(config["csv_path"])
@@ -133,8 +128,7 @@ for feature in features:
         selection = st.selectbox(f"{feature}", options, key=feature)
         encoded = options.index(selection)
         user_input[feature] = encoded
-    elif page == "Page 3: diabetes2.csv" and feature == "Age":
-        # Age was standardized during training for diabetes2.csv, so standardize here
+    elif page_choice == "Diabetes2 (Custom2)" and feature == "Age":
         original_age_min = int(df["Age"].min())
         original_age_max = int(df["Age"].max())
         user_val = st.number_input(

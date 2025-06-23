@@ -29,12 +29,12 @@ PAGES = {
         "target_col": "Outcome",
         "model_dir": "models3/",
         "model_files": {
-            "Random Forest": "Random_Forest_clonal_selection.pkl",
-            "Decision Tree": "Decision_Tree_clonal_selection.pkl",
-            "SVM": "SVM_clonal_selection.pkl",
-            "XGBoost": "XGBoost_clonal_selection.pkl",
-            "MLP (Neural Network)": "MLP_Neural_Network_clonal_selection.pkl",
-            "Logistic Regression": "Logistic_Regression_clonal_selection.pkl"
+            "Random Forest": "Random_Forest_after_selection.pkl",
+            "Decision Tree": "Decision_Tree_after_selection.pkl",
+            "SVM": "SVM_after_selection.pkl",
+            "XGBoost": "XGBoost_after_selection.pkl",
+            "MLP (Neural Network)": "MLP_(Neural_Network)_after_selection.pkl",
+            "Logistic Regression": "Logistic_Regression_after_selection.pkl"
         },
         "categorical_map": None,
         "note": "Remplissez les champs pour prédire la présence de diabète selon les caractéristiques d'entrée (diabetes1.csv)."

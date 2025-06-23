@@ -44,12 +44,12 @@ PAGES = {
         "target_col": "class",
         "model_dir": "models3/",
         "model_files": {
-            "Random Forest": "random_forest_clonal_selection.pkl",
-            "Decision Tree": "decision_tree_clonal_selection.pkl",
-            "SVM": "svm_clonal_selection.pkl",
-            "XGBoost": "xgboost_clonal_selection.pkl",
-            "MLP (Neural Network)": "mlp_(neural_network)_clonal_selection.pkl",
-            "Logistic Regression": "logistic_regression_clonal_selection.pkl"
+            "Random Forest": "random_forest_clonal_selection_model.pkl",
+            "Decision Tree": "decision_tree_clonal_selection_model.pkl",
+            "SVM": "svm_clonal_selection_model.pkl",
+            "XGBoost": "xgboost_clonal_selection_model.pkl",
+            "MLP (Neural Network)": "mlp_(neural_network)_clonal_selection_model.pkl",
+            "Logistic Regression": "logistic_regression_clonal_selection_model.pkl"
         },
         "categorical_map": {
             "Gender": ["Female", "Male"],

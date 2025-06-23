@@ -78,7 +78,15 @@ PAGES = {
 
 @st.cache_resource
 def load_model(model_path):
-    return joblib.load(model_path)
+    obj = joblib.load(model_path)
+    # Try to extract model and feature_names if packed as dict
+    if isinstance(obj, dict):
+        if "model" in obj and "feature_names" in obj:
+            return obj["model"], obj["feature_names"]
+    # fallback: try to get feature_names_ if present
+    if hasattr(obj, "feature_names_in_"):
+        return obj, list(obj.feature_names_in_)
+    return obj, None
 
 @st.cache_data
 def load_csv(csv_path):
@@ -88,7 +96,6 @@ def show_numeric_input(df, feature, value=None):
     min_value = float(df[feature].min())
     max_value = float(df[feature].max())
     mean_value = float(df[feature].mean())
-    # attempt to cast value to float, default to mean if None or cannot be cast
     try:
         if value is None or pd.isnull(value):
             value = mean_value
@@ -106,7 +113,6 @@ def clean_numeric(val):
             return None
         if isinstance(val, str):
             val = val.strip()
-        # Try int first, fallback to float
         try:
             return int(float(val))
         except Exception:
@@ -136,7 +142,7 @@ model_name = st.selectbox("Choisissez le modèle de classification", list(model_
 model_path = os.path.join(config["model_dir"], model_files[model_name])
 
 try:
-    model = load_model(model_path)
+    model, model_features = load_model(model_path)
 except Exception as e:
     st.error(f"Erreur lors du chargement du modèle : {e}")
     st.stop()
@@ -191,7 +197,6 @@ for feature in features:
             value=int(user_val),
             key=feature
         )
-        # Normaliser comme dans le script d'origine
         user_input[feature] = (user_val - df["Age"].mean()) / df["Age"].std()
     else:
         if example_row is not None:
@@ -201,6 +206,14 @@ for feature in features:
         user_input[feature] = show_numeric_input(df, feature, value=value)
 
 input_df = pd.DataFrame([user_input])
+
+# Align input_df columns to model_features if available
+if model_features is not None:
+    # Add missing columns as 0, remove extra columns
+    for col in model_features:
+        if col not in input_df.columns:
+            input_df[col] = 0
+    input_df = input_df[model_features]
 
 if st.button("Prédire le diabète"):
     with st.spinner("Prédiction en cours..."):

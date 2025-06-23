@@ -27,7 +27,7 @@ PAGES = {
     "Diabetes1 (Custom1)": {
         "csv_path": "diabetes1.csv",
         "target_col": "Outcome",
-        "model_dir": "models3/",
+        "model_dir": "models2/",
         "model_files": {
             "Random Forest": "Random_Forest_after_selection.pkl",
             "Decision Tree": "Decision_Tree_after_selection.pkl",
@@ -42,7 +42,7 @@ PAGES = {
     "Diabetes2 (Custom2)": {
         "csv_path": "diabetes2.csv",
         "target_col": "class",
-        "model_dir": "models2/",
+        "model_dir": "models3/",
         "model_files": {
             "Random Forest": "Random_Forest_after_selection.pkl",
             "Decision Tree": "Decision_Tree_after_selection.pkl",
